@@ -68,8 +68,8 @@ class Bf3RssNewsClass
 		$ch = curl_init();
 		//curl_setopt($ch, CURLOPT_URL, "http://www.battlefield.com/de/battlefield3/rss/blog");
 		// curl_setopt($ch, CURLOPT_URL, "http://www.battlefield-4.net/rssfeed");
-		curl_setopt($ch, CURLOPT_URL, "http://www.battlefieldseries.de/feed/");
-		curl_setopt($ch, CURLOPT_HEADER, 0);
+		curl_setopt($ch, CURLOPT_URL, "https://www.battlefieldseries.de/feed/"); //https is now forced on battlefieldseries.de
+		curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false); //allow any certificate, not optimally but we are passing no important informationscurl_setopt($ch, CURLOPT_HEADER, 0);
 		curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
 		$data = curl_exec($ch);
 		curl_close($ch);
