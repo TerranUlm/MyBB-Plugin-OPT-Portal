@@ -16,9 +16,9 @@ function opt_portal_content_info()
 		'website' => 'http://www.opt-community.de',
 		'author' => 'Dieter Gobbers (@Terran_ulm)',
 		'authorsite' => 'http://www.opt-community.de',
-		'version' => '1.0',
+		'version' => '1.1',
 		'guid' => '',
-		'compatibility' => '16*'
+		'compatibility' => '18*'
 	);
 }
 
