@@ -6,6 +6,11 @@ if (!defined('IN_MYBB'))
 	die('Direct initialization of this file is not allowed.<br /><br />Please make sure IN_MYBB is defined.');
 }
 
+if (!defined("PLUGINLIBRARY"))
+{
+	define("PLUGINLIBRARY", MYBB_ROOT . "inc/plugins/pluginlibrary.php");
+}
+
 /* --- Plugin API: --- */
 
 function opt_portal_warlist_info()
@@ -13,12 +18,12 @@ function opt_portal_warlist_info()
 	return array(
 		'name' => 'OPT Portal Warlist',
 		'description' => 'Zeigt die Schlachtenliste auf der Startseite an',
-		'website' => 'http://opt-community.de/',
-		'author' => 'Dieter Gobbers (@Terran_ulm)',
-		'authorsite' => 'http://opt-community.de/',
-		'version' => '1.0',
-		'guid' => '',
-		'compatibility' => '16*'
+		'website'=>'https://github.com/TerranUlm/',
+		'author'=>'Dieter Gobbers (@Terran_ulm)',
+		'authorsite' => 'https://opt-community.de/',
+		'version' => '1.2',
+		'codename'=>'opt_portal_warlist',
+		'compatibility' => '18*'
 	);
 }
 
@@ -49,40 +54,7 @@ function opt_portal_warlist_is_installed()
 	
 	global $db;
 	
-	// setup some helper functions
-	// function opt_armies_settinggroups_defined($settinggroup)
-	// {
-		// global $db;
-		// $query  = $db->simple_select('settinggroups', '*', 'name="' . $db->escape_string($settinggroup) . '"');
-		// $result = $db->fetch_array($query);
-		// $db->free_result($query);
-		// return (!empty($result));
-	// }
-	
-	// function opt_armies_setting_defined($setting)
-	// {
-		// global $db;
-		// $query  = $db->simple_select('settings', '*', 'name="' . $db->escape_string($setting) . '"');
-		// $result = $db->fetch_array($query);
-		// $db->free_result($query);
-		// return (!empty($result));
-	// }
-	
-	// definitions:
-	// $settinggroups = array(
-		// 'opt_armies'
-	// );
-	// $settings      = array(
-		// 'opt_armies_registration_open',
-		// 'opt_armies_random_join_only',
-		// 'opt_armies_max_member_difference'
-	// );
-	// $tables        = array(
-		// 'armies',
-		// 'armies_structures'
-	// );
-	
-	// now check if the DB is setup
+	// check if the DB is setup
 	$is_installed = false;
 	$query=$db->simple_select(
 		'templates',
@@ -91,28 +63,9 @@ function opt_portal_warlist_is_installed()
 	);
 	$is_installed=$db->fetch_field($query, 'installed');
 	$db->free_result($query);
-	// foreach ($settinggroups as $settinggroup)
-	// {
-		// if (!opt_armies_settinggroups_defined($settinggroup))
-		// {
-			// $is_installed = false;
-		// }
-	// }
-	// foreach ($settings as $setting)
-	// {
-		// if (!opt_armies_setting_defined($setting))
-		// {
-			// $is_installed = false;
-		// }
-	// }
-	// foreach ($tables as $table)
-	// {
-		// if (!$db->table_exists($table))
-		// {
-			// $is_installed = false;
-		// }
-	// }
 	
+	// TODO: check for settingsgroup and settings
+
 	return $is_installed;
 }
 
@@ -137,110 +90,20 @@ function opt_portal_warlist_install()
 	
 	// $lang->load('opt_portal_warlist');
 	
-	$myplugin = opt_armies_info();
+	$myplugin = opt_portal_warlist_info();
 	
 	// create ACP settings
-	// {
-		// $PL->settings('opt_armies', $myplugin[ 'name' ], $myplugin[ 'description' ] . '. Configure the Army System Settings.', array(
-			// 'registration_open' => array(
-				// 'title' => $lang->opt_armies_registration_open_title,
-				// 'description' => $lang->opt_armies_registration_open_description,
-				// 'optionscode' => 'yesno',
-				// 'value' => 1
-			// ),
-			// 'random_join_only' => array(
-				// 'title' => $lang->opt_armies_registration_random_only_title,
-				// 'description' => $lang->opt_armies_registration_random_only_description,
-				// 'optionscode' => 'yesno',
-				// 'value' => 0
-			// ),
-			// 'max_member_difference' => array(
-				// 'title' => $lang->opt_armies_max_member_difference_title,
-				// 'description' => $lang->opt_armies_max_member_difference_description,
-				// 'optionscode' => 'text',
-				// 'value' => 10
-			// )
-		// ));
-	// }
-	
-	// tables definition statements
-	// {
-		// $create_table_armies            = "CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "armies` (
-			// `aid` int(11) NOT NULL AUTO_INCREMENT COMMENT 'Army ID',
-			// `gid` smallint(5) unsigned NOT NULL COMMENT 'usergroup ID',
-			// `uugid` smallint(5) unsigned NOT NULL COMMENT 'unassigned users usergroup ID',
-			// `HCO_gid` smallint(5) unsigned DEFAULT NULL COMMENT 'High Command Officer Group ID',
-			// `CO_gid` smallint(5) unsigned DEFAULT NULL COMMENT 'Commanding Officer Group ID',
-			// `shortcut` varchar(5) NOT NULL COMMENT 'shortcut of the army name (aka \"Tag\")',
-			// `name` varchar(255) NOT NULL COMMENT 'Name of the Army',
-			// `nation` varchar(255) NOT NULL COMMENT 'Nation of the Army',
-			// `icon` varchar(255) NOT NULL DEFAULT '' COMMENT 'Army Icon (optional)',
-			// `leader_uid` int(10) unsigned NOT NULL COMMENT 'the army leaders'' UID',
-			// `displayorder` int(10) unsigned NOT NULL,
-			// `is_locked` int(1) unsigned NOT NULL DEFAULT '0' COMMENT '0=users can join the army, 1=users cannot join the army',
-			// `is_invite_only` tinyint(1) unsigned NOT NULL DEFAULT '0' COMMENT '0=users can request to join the army, 1=users must be invited to join the army',
-			// `welcome_pm` text COMMENT 'templates for the PMs send to new recruits',
-			// PRIMARY KEY (`aid`),
-			// UNIQUE KEY `name` (`name`),
-			// UNIQUE KEY `gid` (`gid`),
-			// UNIQUE KEY `uugid` (`uugid`),
-			// UNIQUE KEY `HCO_gid` (`HCO_gid`),
-			// UNIQUE KEY `CO_gid` (`CO_gid`),
-			// KEY `displayorder` (`displayorder`),
-			// KEY `leader_uid` (`leader_uid`)
-		// ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Armies'";
-		// $create_table_armies_structures = "CREATE TABLE IF NOT EXISTS `" . TABLE_PREFIX . "armies_structures` (
-			// `agrid` int(11) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Army to Groups Relations ID',
-			// `pagrid` int(11) unsigned DEFAULT NULL COMMENT 'Parent''s agrid',
-			// `aid` int(11) NOT NULL COMMENT 'Army ID',
-			// `gid` smallint(5) unsigned NOT NULL COMMENT 'usergroup ID',
-			// `shortcut` varchar(5) DEFAULT NULL COMMENT 'shortcut of the group name (aka \"Tag\")',
-			// `leader_uid` int(10) unsigned NOT NULL COMMENT 'the groups leaders'' UID',
-			// `displayorder` int(11) NOT NULL,
-			// PRIMARY KEY (`agrid`),
-			// UNIQUE KEY `gid` (`gid`),
-			// KEY `displayorder` (`displayorder`),
-			// KEY `acid` (`aid`),
-			// KEY `pagrid` (`pagrid`),
-			// KEY `leader_uid` (`leader_uid`)
-		// ) ENGINE=InnoDB  DEFAULT CHARSET=utf8 COMMENT='Army and Group Relationships'";
-		// $alter_table_armies_structures  = "ALTER TABLE `" . TABLE_PREFIX . "armies_structures`
-			// ADD CONSTRAINT `" . TABLE_PREFIX . "armies_structures_ibfk_1` FOREIGN KEY (`aid`) REFERENCES `" . TABLE_PREFIX . "armies` (`aid`) ON DELETE CASCADE ON UPDATE CASCADE";
-		
-		// // create tables
-		// $db->write_query($create_table_armies);
-		// $db->write_query($create_table_armies_structures);
-		
-		// // alter tables
-		// // $db->write_query($alter_table_armies_structures);
-	// }
-	
-	// create stylesheet
-	// opt_armies_setup_stylessheet();
-	
-	// create templates
+	{
+		$PL->settings('opt_portal_warlist', $myplugin[ 'name' ], $myplugin[ 'description' ] . '. Configure the OPT Portal Warlist Settings.', array(
+			'response_url' => array(
+				'title' => 'Player Response Page URL',
+				'description' => 'URL for the player response page, without the match ID, e.g. misc.php?action=match_response&mid=<br/><span style="color: red;">Setting not implemented at the moment</span>',
+				'optionscode' => 'text',
+				'value' => 'misc.php?action=match_response&mid='
+			)
+		));
+	}
 	opt_portal_warlist_setup_templates();
-	
-	// create task
-	// require_once MYBB_ROOT."/inc/functions_task.php";
-	
-	// $new_task = array(
-	// "title" => $db->escape_string($lang->opt_armies_title),
-	// "description" => $db->escape_string($lang->opt_armies_task_description),
-	// "file" => $db->escape_string('opt_armies'),
-	// "minute" => $db->escape_string('27'),
-	// "hour" => $db->escape_string('3'),
-	// "day" => $db->escape_string('*'),
-	// "month" => $db->escape_string('*'),
-	// "weekday" => $db->escape_string('*'),
-	// "enabled" => intval(0),
-	// "logging" => intval(1)
-	// );
-	
-	// $new_task['nextrun'] = fetch_next_run($new_task);
-	// $tid = $db->insert_query("tasks", $new_task);
-	// $cache->update_tasks();
-	
 }
 
 function opt_portal_warlist_uninstall()
@@ -253,24 +116,8 @@ function opt_portal_warlist_uninstall()
 	
 	global $db, $lang, $cache;
 	
-	// $lang->load('opt_portal_warlist');
-	
-	// drop tables
-	// $tables = array(
-		// 'armies_structures',
-		// 'armies'
-	// );
-	// foreach ($tables as $table)
-	// {
-		// $db->write_query("DROP TABLE " . TABLE_PREFIX . $table);
-	// }
-	
-	// $PL->stylesheet_delete('opt_portal_warlist');
 	$PL->templates_delete('optwarlist');
-	
-	// $db->delete_query("tasks", "title='{$db->escape_string($lang->opt_armies_title)}'");
-	// $cache->update_tasks();
-	
+	$PL->settings_delete('opt_portal_warlist');
 }
 
 
@@ -307,6 +154,8 @@ function opt_portal_warlist_portal_start_24()
 		'order_by' => 'dateline',
 		'order_dir' => 'ASC'
 	));
+	
+	$trow=0;
 	while ($match = $db->fetch_array($query))
 	{
 		
@@ -350,12 +199,14 @@ function opt_portal_warlist_portal_start_24()
 			}
 		}
 		
+		$altbg="trow".($trow+1);
+		$trow=1-$trow;
 		
 		eval("\$portal_warlist_entry .= \"" . $templates->get("optwarlist_portal_warlist_entry") . "\";");
 		$i++;
 	}
 	if ($next_war == false)
-		$wl_pos = ($db->num_rows($query) - 3) * -117;
+		$wl_pos = ($db->num_rows($query) - 2) * -117;
 	$db->free_result($query);
 	
 	if (!empty($next_war))
@@ -408,16 +259,17 @@ function my_timestamp($stamp="", $offset="")
 }
 
 // templates are a big mess so I put it to the end of the file
+// TODO: make the response URL a plugin setting
 function opt_portal_warlist_setup_templates()
 {
 	global $PL;
 	
 	$PL->templates('optwarlist', 'OPT Portal Warlist', array(
-		'portal_warlist_entry' => '<li>
+		'portal_warlist_entry' => '<li class="{$altbg}">
 {$wl_timer}
 <table style="border-collapse:collapse;height:100px;color:#555;" class="wl_entry">
 <tr>
-<td colspan="3" style="font:bold 13px verdana;padding:10px 0 0 0;"><a href="misc.php?page=schlacht_teilnahme&schid={$wl_sch_id}">{$wl_name}</a></td>
+<td colspan="3" style="font:bold 13px verdana;padding:10px 0 0 0;"><a href="misc.php?action=match_response&mid={$wl_sch_id}">{$wl_name}</a></td>
 <td colspan="2" style="font: 12px verdana;padding:0;text-align:right;padding:10px 0 0 0;">{$wl_startdate}</td>
 </tr>
 <tr>
@@ -429,6 +281,8 @@ function opt_portal_warlist_setup_templates()
 </li>'
 	));
 }
+
+// TODO: create templates
 
 /* Exported by Hooks plugin Fri, 25 Oct 2013 21:00:25 GMT */
 ?>
